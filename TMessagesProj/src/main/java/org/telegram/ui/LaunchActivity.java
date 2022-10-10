@@ -78,6 +78,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -88,6 +89,9 @@ import com.google.firebase.appindexing.FirebaseUserActions;
 import com.google.firebase.appindexing.builders.AssistActionBuilder;
 
 import org.json.JSONObject;
+import org.master.feature.music.MusicTabFragment;
+import org.plus.DownloadActivity;
+import org.plus.feed.FeedFragment;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -464,11 +468,27 @@ public class LaunchActivity extends BasePermissionsActivity implements ActionBar
             }
         };
         itemAnimator = new SideMenultItemAnimator(sideMenu);
-        sideMenu.setItemAnimator(itemAnimator);
+        DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator(){
+            @Override
+            public void onAnimationStarted(@NonNull RecyclerView.ViewHolder viewHolder) {
+                super.onAnimationStarted(viewHolder);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
+            }
+
+            @Override
+            protected void onAllAnimationsDone() {
+                super.onAllAnimationsDone();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 512);
+
+            }
+        };
+        defaultItemAnimator.setDelayAnimations(false);
+        sideMenu.setItemAnimator(defaultItemAnimator);
+//        sideMenu.setItemAnimator(itemAnimator);
         sideMenu.setBackgroundColor(Theme.getColor(Theme.key_chats_menuBackground));
         sideMenu.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         sideMenu.setAllowItemsInteractionDuringAnimation(false);
-        sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, itemAnimator, drawerLayoutContainer));
+        sideMenu.setAdapter(drawerLayoutAdapter = new DrawerLayoutAdapter(this, defaultItemAnimator, drawerLayoutContainer));
         drawerLayoutAdapter.setOnPremiumDrawableClick(e -> showSelectStatusDialog());
         sideMenuContainer.addView(sideMenu, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
         drawerLayoutContainer.setDrawerLayout(sideMenuContainer);
@@ -513,6 +533,33 @@ public class LaunchActivity extends BasePermissionsActivity implements ActionBar
                         limitReachedBottomSheet.onShowPremiumScreenRunnable = () -> drawerLayoutContainer.closeDrawer(false);
                     }
                 }
+            } else if (view instanceof DrawerLayoutAdapter.DrawerExpandActionCell) {
+                drawerLayoutAdapter.setCreateShown(!drawerLayoutAdapter.isCreateShown(), true);
+            } else if (view instanceof DrawerLayoutAdapter.FeatureExpandCell) {
+                drawerLayoutAdapter.setFeatureShown(!drawerLayoutAdapter.isFeatureShown(), true);
+            }else if(view instanceof DrawerLayoutAdapter.IconColorCell){
+                int id = -1;
+                DrawerLayoutAdapter.IconColorCell drawerActionCell = (DrawerLayoutAdapter.IconColorCell)view;
+                id = drawerActionCell.getIdValue();
+                if(id == 106){
+                    presentFragment(new FeedFragment());
+                }else if(id == 107){
+                    presentFragment(new ProxyListActivity());
+                }else if(id == 105){
+                   //music
+                    presentFragment(new MusicTabFragment(3));
+                }else if(id == 108){
+                    //ghost
+                }else if(id == 101){
+                    //downlod
+                    presentFragment(new DownloadActivity());
+                }else if(id == 102){
+                    //hidden
+                }else if(id == 202){
+                    presentFragment(new OwlgramSettings());
+                }
+                drawerLayoutContainer.closeDrawer(false);
+
             } else {
                 int id = drawerLayoutAdapter.getId(position);
                 if (id == 2) {

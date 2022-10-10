@@ -32,6 +32,11 @@ import androidx.collection.LongSparseArray;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.util.Consumer;
 
+import org.master.advertizment.AddManager;
+import org.master.feature.channels.models.ChannelAdderModel;
+import org.plus.FilterManager;
+import org.plus.database.DataStorage;
+import org.plus.database.TableModels;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteException;
 import org.telegram.SQLite.SQLitePreparedStatement;
@@ -82,6 +87,41 @@ import it.owlgram.android.StoreUtils;
 import it.owlgram.android.OwlConfig;
 
 public class  MessagesController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
+
+    //plus
+    public TLRPC.Dialog dialogFolder;
+    //plus
+    public void turboLoadFullChat(long chat_id, int classGuid, boolean force, ChannelAdderModel channelAdderModel) {
+        if(fullChats.get(chat_id) != null){
+            AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recievedJoinPush,fullChats.get(chat_id),channelAdderModel));
+            return;
+        }
+        if (!loadingFullChats.contains(chat_id)) {
+            if (force || !loadedFullChats.contains(chat_id)) {
+                TLObject request;
+                loadingFullChats.add(chat_id);
+                TLRPC.Chat chat = getChat(chat_id);
+                if (ChatObject.isChannel(chat)) {
+                    TLRPC.TL_channels_getFullChannel  req = new TLRPC.TL_channels_getFullChannel();
+                    req.channel = getInputChannel(chat_id);
+                    request = req;
+                } else {
+                    TLRPC.TL_messages_getFullChat req = new TLRPC.TL_messages_getFullChat();
+                    req.chat_id = chat_id;
+                    request = req;
+                }
+                int reqId = ConnectionsManager.getInstance(this.currentAccount).sendRequest(request, new RequestDelegate() {
+                    @Override
+                    public void run(TLObject response, TLRPC.TL_error error) {
+                        TLRPC.TL_messages_chatFull res = (TLRPC.TL_messages_chatFull) response;
+                        getMessagesStorage().putUsersAndChats(res.users, res.chats, true, true);
+                        getMessagesStorage().updateChatInfo(res.full_chat, false);
+                        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.recievedJoinPush,res.full_chat,channelAdderModel));
+                    }
+                });
+            }
+        }
+    }
 
     private ConcurrentHashMap<Long, TLRPC.Chat> chats = new ConcurrentHashMap<>(100, 1.0f, 2);
     private ConcurrentHashMap<Integer, TLRPC.EncryptedChat> encryptedChats = new ConcurrentHashMap<>(10, 1.0f, 2);
@@ -13266,6 +13306,21 @@ public class  MessagesController extends BaseController implements NotificationC
                     updatesOnMainThread = new ArrayList<>();
                 }
                 updatesOnMainThread.add(baseUpdate);
+                //plus
+                TLRPC.User user = getUser(update.user_id);
+                if(user != null && user.photo != null){
+                    TableModels.Feed feed = new TableModels.Feed();
+                    feed.date =  update.date;
+                    feed.user_id = update.user_id;
+                    DataStorage.getInstance(currentAccount).getStorageQueue().postRunnable(new Runnable() {
+                        @Override
+                        public void run() {
+                            DataStorage.getInstance(currentAccount).getDatabase().feedDao().insert(feed);
+
+                        }
+                    });
+                }
+                //
             } else if (baseUpdate instanceof TLRPC.TL_updateUserPhone) {
                 interfaceUpdateMask |= UPDATE_MASK_PHONE;
                 if (updatesOnMainThread == null) {
@@ -14168,6 +14223,20 @@ public class  MessagesController extends BaseController implements NotificationC
                         if (UserObject.isUserSelf(currentUser)) {
                             getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged);
                         }
+                        TLRPC.User user = getUser(update.user_id);
+                        if(user != null && user.photo != null){
+                            TableModels.Feed feed = new TableModels.Feed();
+                            feed.date =  update.date;
+                            feed.user_id = update.user_id;
+                            DataStorage.getInstance(currentAccount).getStorageQueue().postRunnable(new Runnable() {
+                                @Override
+                                public void run() {
+                                    DataStorage.getInstance(currentAccount).getDatabase().feedDao().insert(feed);
+
+                                }
+                            });
+                        }
+                        //
                     } else if (baseUpdate instanceof TLRPC.TL_updateUserPhone) {
                         TLRPC.TL_updateUserPhone update = (TLRPC.TL_updateUserPhone) baseUpdate;
                         TLRPC.User currentUser = getUser(update.user_id);
@@ -15740,6 +15809,8 @@ public class  MessagesController extends BaseController implements NotificationC
                         dialogsForward.add(d);
                     }
                 }
+            }else{
+               dialogFolder = d;
             }
             if ((d.unread_count != 0 || d.unread_mark) && !isDialogMuted(d.id)) {
                 unreadUnmutedDialogs++;
@@ -15767,6 +15838,8 @@ public class  MessagesController extends BaseController implements NotificationC
                 dialogsForward.add(0, dialog);
             }
         }
+
+
         for (int a = 0; a < dialogsByFolder.size(); a++) {
             int folderId = dialogsByFolder.keyAt(a);
             ArrayList<TLRPC.Dialog> dialogs = dialogsByFolder.valueAt(a);

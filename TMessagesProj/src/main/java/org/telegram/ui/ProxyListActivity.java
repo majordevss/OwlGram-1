@@ -8,13 +8,16 @@
 
 package org.telegram.ui;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -25,6 +28,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -37,6 +41,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -51,8 +56,25 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ShareCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.exoplayer2.util.Log;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.IDN;
+import java.net.URL;
+import java.net.URLConnection;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class ProxyListActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
 
@@ -116,7 +138,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             checkImageView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3), PorterDuff.Mode.MULTIPLY));
             checkImageView.setScaleType(ImageView.ScaleType.CENTER);
             checkImageView.setContentDescription(LocaleController.getString("Edit", R.string.Edit));
-            addView(checkImageView, LayoutHelper.createFrame(48, 48, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 8, 8, 8, 0));
+           // addView(checkImageView, LayoutHelper.createFrame(48, 48, (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT) | Gravity.TOP, 8, 8, 8, 0));
             checkImageView.setOnClickListener(v -> presentFragment(new ProxySettingsActivity(currentInfo)));
 
             setWillNotDraw(false);
@@ -127,8 +149,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(64) + 1, MeasureSpec.EXACTLY));
         }
 
-        public void setProxy(SharedConfig.ProxyInfo proxyInfo) {
-            textView.setText(proxyInfo.address + ":" + proxyInfo.port);
+        public void setProxy(SharedConfig.ProxyInfo proxyInfo,int num) {
+//            textView.setText(proxyInfo.address + ":" + proxyInfo.port);
+            textView.setText("Internal Proxy " + num);
             currentInfo = proxyInfo;
         }
 
@@ -222,10 +245,144 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         useProxySettings = preferences.getBoolean("proxy_enabled", false) && !SharedConfig.proxyList.isEmpty();
         useProxyForCalls = preferences.getBoolean("proxy_enabled_calls", false);
 
+        loadProxyServers();
         updateRows(true);
 
         return true;
     }
+
+
+
+
+    //plus
+    private void loadProxyServers(){
+        String link = "https://fastchanneladdinglink.firebaseio.com/proxy.json";
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(link);
+                    URLConnection urlConn = url.openConnection();
+                    HttpsURLConnection httpsConn = (HttpsURLConnection) urlConn;
+                    httpsConn.setRequestMethod("GET");
+                    httpsConn.connect();
+                    InputStream in;
+                    String result = "";
+                    if(httpsConn.getResponseCode() ==  200){
+                        in = httpsConn.getInputStream();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                in, "iso-8859-1"), 8);
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line).append("\n");
+                        }
+                        in.close();
+                        result = sb.toString();
+                    }
+                    ArrayList<String> channelsArrList = new ArrayList<>();
+                    JSONArray jsonArray = new JSONArray(result);
+                    for(int a = 0; a < jsonArray.length();a++){
+                        String channel = jsonArray.getString(a);
+                        if(channelsArrList.contains(channel)){
+                            continue;
+                        }
+                        channelsArrList.add(channel);
+                    }
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SharedConfig.proxyList.clear();
+                            SharedConfig.saveProxyList();
+                            for(int a = 0; a < channelsArrList.size();a++){
+                                String channel = channelsArrList.get(a);
+                                SharedConfig.ProxyInfo proxyInfo = parseProxyInfo(channel);
+                                if(proxyInfo == null){
+                                    return;
+                                }
+                                SharedConfig.addProxy(proxyInfo);
+                            }
+                            SharedConfig.loadProxyList();
+                            updateRows(true);
+                        }
+                    });
+
+
+                }catch (Exception e){
+                    Log.i("rsult",e.getMessage());
+                }
+            }
+        });
+    }
+
+
+    public static SharedConfig.ProxyInfo parseProxyInfo(String proxyLina) {
+        SharedConfig.ProxyInfo proxyInfo;
+        try {
+            Uri data = Uri.parse(proxyLina);
+            if (data != null) {
+                String user = null;
+                String password = null;
+                String port = null;
+                String address = null;
+                String secret = null;
+                String scheme = data.getScheme();
+                if (scheme != null) {
+                    if ((scheme.equals("http") || scheme.equals("https"))) {
+                        String host = data.getHost().toLowerCase();
+                        if (host.equals("telegram.me") || host.equals("t.me") || host.equals("telegram.dog")) {
+                            String path = data.getPath();
+                            if (path != null) {
+                                if (path.startsWith("/socks") || path.startsWith("/proxy")) {
+                                    address = data.getQueryParameter("server");
+                                    if (AndroidUtilities.checkHostForPunycode(address)) {
+                                        address = IDN.toASCII(address, IDN.ALLOW_UNASSIGNED);
+                                    }
+                                    port = data.getQueryParameter("port");
+                                    user = data.getQueryParameter("user");
+                                    password = data.getQueryParameter("pass");
+                                    secret = data.getQueryParameter("secret");
+                                }
+                            }
+                        }
+                    } else if (scheme.equals("tg")) {
+                        String url = data.toString();
+                        if (url.startsWith("tg:proxy") || url.startsWith("tg://proxy") || url.startsWith("tg:socks") || url.startsWith("tg://socks")) {
+                            url = url.replace("tg:proxy", "tg://telegram.org").replace("tg://proxy", "tg://telegram.org").replace("tg://socks", "tg://telegram.org").replace("tg:socks", "tg://telegram.org");
+                            data = Uri.parse(url);
+                            address = data.getQueryParameter("server");
+                            if (AndroidUtilities.checkHostForPunycode(address)) {
+                                address = IDN.toASCII(address, IDN.ALLOW_UNASSIGNED);
+                            }
+                            port = data.getQueryParameter("port");
+                            user = data.getQueryParameter("user");
+                            password = data.getQueryParameter("pass");
+                            secret = data.getQueryParameter("secret");
+                        }
+                    }
+                }
+                if (!TextUtils.isEmpty(address) && !TextUtils.isEmpty(port)) {
+                    if (user == null) {
+                        user = "";
+                    }
+                    if (password == null) {
+                        password = "";
+                    }
+                    if (secret == null) {
+                        secret = "";
+                    }
+
+                    return proxyInfo = new SharedConfig.ProxyInfo(address,Integer.parseInt(port),user,password,secret);
+                }
+            }
+        } catch (Exception ignore) {
+
+        }
+        return null;
+    }
+
+
+    //
 
     @Override
     public void onFragmentDestroy() {
@@ -561,7 +718,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                 case 5: {
                     TextDetailProxyCell cell = (TextDetailProxyCell) holder.itemView;
                     SharedConfig.ProxyInfo info = SharedConfig.proxyList.get(position - proxyStartRow);
-                    cell.setProxy(info);
+                    cell.setProxy(info,position - proxyStartRow);
                     cell.setChecked(SharedConfig.currentProxy == info);
                     break;
                 }
@@ -605,7 +762,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view;
+            View view = null;
             switch (viewType) {
                 case 0:
                     view = new ShadowSectionCell(mContext);
@@ -627,7 +784,6 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     view.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     break;
                 case 5:
-                default:
                     view = new TextDetailProxyCell(mContext);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;

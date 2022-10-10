@@ -188,7 +188,7 @@ public class OwlgramExperimentalSettings extends BaseFragment {
         experimentalMessageAlert = -1;
 
         checkBoxExperimentalRow = rowCount++;
-        if(OwlConfig.isDevOptEnabled()) {
+        if(OwlConfig.isDevOptEnabled() ) {
             headerImageRow = rowCount++;
             bottomHeaderRow = rowCount++;
             headerExperimental = rowCount++;

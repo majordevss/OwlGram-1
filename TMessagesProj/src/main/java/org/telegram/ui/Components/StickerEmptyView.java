@@ -25,6 +25,14 @@ import org.telegram.ui.ActionBar.Theme;
 
 public class StickerEmptyView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
 
+    public TextView getTitle() {
+        return title;
+    }
+
+    public TextView getSubtitle() {
+        return subtitle;
+    }
+
     public final static int STICKER_TYPE_NO_CONTACTS = 0;
     public final static int STICKER_TYPE_SEARCH = 1;
     public final static int STICKER_TYPE_DONE = 2;

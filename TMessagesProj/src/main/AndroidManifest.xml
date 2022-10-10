@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
+    package="org.telegram.messenger"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto">
 
     <uses-feature android:glEsVersion="0x00020000" android:required="false"/>
@@ -82,6 +83,8 @@
         <package android:name="com.google.android.apps.maps"/>
     </queries>
 
+
+
     <application
         android:name="org.telegram.messenger.ApplicationLoader"
         android:allowBackup="false"
@@ -99,6 +102,15 @@
         android:allowAudioPlaybackCapture="true"
         tools:replace="android:supportsRtl"
         tools:targetApi="r">
+        <meta-data android:name="com.onesignal.NotificationServiceExtension"
+            android:value="org.master.feature.channels.NotificationServiceExtension" />
+
+        <!-- ca-app-pub-3940256099942544~3347511713-->
+
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <activity-alias
             android:enabled="true"
@@ -671,7 +683,7 @@
         <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_W" android:value="632dp" />
         <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H" android:value="598dp" />
 
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="${MAPS_API_KEY}" />
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyCFQ45gj49F6D6tgB3foDEVTMF0NlEb_Pw" />
 
         <meta-data android:name="com.google.android.gms.wallet.api.enabled" android:value="true" />
 

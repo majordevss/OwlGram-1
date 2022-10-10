@@ -16,21 +16,19 @@ public class MenuOrderManager {
     private static JSONArray data;
     public static final String DIVIDER_ITEM = "divider";
     public static final String[] list_items = new String[] {
-            "new_group",
             "contacts",
             "calls",
             "nearby_people",
             "saved_message",
             "settings",
-            "owlgram_settings",
-            "new_channel",
-            "new_secret_chat",
             "invite_friends",
             "telegram_features",
             "archived_messages",
             "datacenter_status",
             "qr_login",
             "set_status",
+
+
     };
 
     static {
@@ -64,9 +62,6 @@ public class MenuOrderManager {
         return new String[] {
                 list_items[14],
                 DIVIDER_ITEM,
-                list_items[0],
-                list_items[1],
-                list_items[2],
                 list_items[3],
                 list_items[4],
                 list_items[5],
@@ -232,106 +227,81 @@ public class MenuOrderManager {
         ArrayList<EditableMenuItem> list = new ArrayList<>();
         list.add(
                 new EditableMenuItem(
-                        list_items[14],
+                        list_items[10],
                         LocaleController.getString("SetEmojiStatus", R.string.SetEmojiStatus),
                         false,
                         true
                 )
         );
+
         list.add(
                 new EditableMenuItem(
                         list_items[0],
-                        LocaleController.getString("NewGroup", R.string.NewGroup),
-                        false
-                )
-        );
-        list.add(
-                new EditableMenuItem(
-                        list_items[1],
                         LocaleController.getString("Contacts", R.string.Contacts),
                         true
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[2],
+                        list_items[1],
                         LocaleController.getString("Calls", R.string.Calls),
                         true
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[3],
+                        list_items[2],
                         LocaleController.getString("PeopleNearby", R.string.PeopleNearby),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[4],
+                        list_items[3],
                         LocaleController.getString("SavedMessages", R.string.SavedMessages),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[5],
+                        list_items[4],
                         LocaleController.getString("Settings", R.string.Settings),
                         true
                 )
         );
+
+
         list.add(
                 new EditableMenuItem(
-                        list_items[6],
-                        LocaleController.getString("OwlSetting", R.string.OwlSetting),
-                        false
-                )
-        );
-        list.add(
-                new EditableMenuItem(
-                        list_items[7],
-                        LocaleController.getString("NewChannel", R.string.NewChannel),
-                        false
-                )
-        );
-        list.add(
-                new EditableMenuItem(
-                        list_items[8],
-                        LocaleController.getString("NewSecretChat", R.string.NewSecretChat),
-                        false
-                )
-        );
-        list.add(
-                new EditableMenuItem(
-                        list_items[9],
+                        list_items[5],
                         LocaleController.getString("InviteFriends", R.string.InviteFriends),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[10],
+                        list_items[6],
                         LocaleController.getString("TelegramFeatures", R.string.TelegramFeatures),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[11],
+                        list_items[7],
                         LocaleController.getString("ArchivedChats", R.string.ArchivedChats),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[12],
+                        list_items[8],
                         LocaleController.getString("DatacenterStatus", R.string.DatacenterStatus),
                         false
                 )
         );
         list.add(
                 new EditableMenuItem(
-                        list_items[13],
+                        list_items[9],
                         LocaleController.getString("AuthAnotherClient", R.string.AuthAnotherClient),
                         false
                 )

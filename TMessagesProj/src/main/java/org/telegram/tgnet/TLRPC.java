@@ -60661,6 +60661,7 @@ public class TLRPC {
     //TL_dialog start
     public static abstract class Dialog extends TLObject {
 
+        public boolean addDialog;
         public int flags;
         public boolean pinned;
         public boolean unread_mark;

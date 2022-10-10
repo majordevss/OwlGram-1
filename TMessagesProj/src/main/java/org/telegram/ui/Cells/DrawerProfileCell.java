@@ -318,6 +318,7 @@ public class DrawerProfileCell extends FrameLayout implements NotificationCenter
 
     }
 
+
     public static class AnimatedStatusView extends View {
         private int stateSize;
         private int effectsSize;

@@ -22,6 +22,16 @@ public class NotificationCenter {
 
     private final static long EXPIRE_NOTIFICATIONS_TIME = 5017;
     private static int totalEvents = 1;
+    //plus
+    public static final int didFeedLoaded = totalEvents++;
+    public static final int updateData = totalEvents++;
+    public static final int didAddLoadded = totalEvents++;
+    public static final int didNewsLoaded = totalEvents++;
+    public static final int feedFiltersUpdated = totalEvents++;
+
+    public static final int recievedJoinPush = totalEvents++;
+
+
 
     public static final int didReceiveNewMessages = totalEvents++;
     public static final int updateInterfaces = totalEvents++;

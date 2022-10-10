@@ -163,17 +163,16 @@ public class OwlgramSettings extends BaseFragment {
         chatSettingsRow = rowCount++;
         experimentalSettingsRow = rowCount++;
         if (StoreUtils.isFromCheckableStore() || !StoreUtils.isDownloadedFromAnyStore()) {
-            updateSettingsRow = rowCount++;
+            updateSettingsRow = -1;
         }
-        divisorInfoRow = rowCount++;
-        infoHeaderRow = rowCount++;
-        channelUpdatesRow = rowCount++;
-        groupUpdatesRow = rowCount++;
-        sourceCodeRow = rowCount++;
-        supportTranslationRow = rowCount++;
-        supportDonationRow = rowCount++;
-        bugReportRow = rowCount++;
-
+        divisorInfoRow = -1;
+        infoHeaderRow = -1;
+        channelUpdatesRow = -1;
+        groupUpdatesRow = -1;
+        sourceCodeRow = -1;
+        supportTranslationRow = -1;
+        supportDonationRow = -1;
+        bugReportRow = -1;
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }

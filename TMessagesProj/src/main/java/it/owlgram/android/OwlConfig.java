@@ -116,6 +116,8 @@ public class OwlConfig extends SettingsManager {
     public static int downloadSpeedBoost;
     public static int unlockedSecretIcon;
 
+
+
     static {
         loadConfig(true);
     }
@@ -190,7 +192,7 @@ public class OwlConfig extends SettingsManager {
             oldDownloadedVersion = preferences.getInt("oldDownloadedVersion", 0);
             eventType = preferences.getInt("eventType", 0);
             buttonStyleType = preferences.getInt("buttonStyleType", 0);
-            tabMode = preferences.getInt("tabMode", 1);
+            tabMode = preferences.getInt("tabMode", TAB_TYPE_ICON);
             translatorStyle = preferences.getInt("translatorStyle", BaseTranslator.INLINE_STYLE);
             blurIntensity = preferences.getInt("blurIntensity", 75);
             oldBuildVersion = preferences.getString("oldBuildVersion", null);

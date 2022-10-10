@@ -6,6 +6,8 @@ plugins {
     id 'com.android.library'
     id 'com.google.gms.google-services'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    id 'com.onesignal.androidsdk.onesignal-gradle-plugin'
+
 }
 
 configurations.all {
@@ -81,6 +83,22 @@ dependencies {
 
     //noinspection GradleDependency
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.6' // NEEDED TESTS OF THE NEW R8 VERSION
+
+
+    //plus
+    implementation "androidx.room:room-runtime:2.4.3"
+    annotationProcessor "androidx.room:room-compiler:2.4.3"
+    implementation  'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+    implementation 'com.google.android.gms:play-services-ads:21.1.0'
+    implementation platform('com.google.firebase:firebase-bom:28.4.1')
+
+    implementation "androidx.viewpager2:viewpager2:1.0.0"
+    implementation ('com.squareup.okhttp3:okhttp:4.9.3'){
+        force = true
+    }
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
+
 }
 
 android {
@@ -148,18 +166,27 @@ android {
         buildConfigField "int", "BUILD_VERSION", "${APP_VERSION_CODE}"
         buildConfigField "String", "BUILD_VERSION_STRING", "\"${APP_VERSION_NAME}\""
 
+
         externalNativeBuild {
             cmake {
                 version '3.10.2'
                 arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21'
-                var file = Paths.get("${System.getProperty("user.dir")}${File.separator}Tools${File.separator}ccache${if (OperatingSystem.current().windows) ".exe" else ""}").toFile()
-                if (file.exists()) {
-                    println("Using ccache ${file.getAbsolutePath()}")
-                    arguments += "-DANDROID_CCACHE=${file.getAbsolutePath()}"
-                } else {
-                    throw new Exception("ccache not found")
-                }
+
             }
         }
+
+//        externalNativeBuild {
+//            cmake {
+//                version '3.10.2'
+//                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-21'
+//                var file = Paths.get("${System.getProperty("user.dir")}${File.separator}Tools${File.separator}ccache${if (OperatingSystem.current().windows) ".exe" else ""}").toFile()
+//                if (file.exists()) {
+//                    println("Using ccache ${file.getAbsolutePath()}")
+//                    arguments += "-DANDROID_CCACHE=${file.getAbsolutePath()}"
+//                } else {
+//                    throw new Exception("ccache not found")
+//                }
+//            }
+//        }
     }
 }

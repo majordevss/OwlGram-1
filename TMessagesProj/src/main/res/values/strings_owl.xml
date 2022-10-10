@@ -4,7 +4,7 @@
     <string name="TestBackend">Test Backend</string>
     <string name="TestBackendOn">This account will connect to the test backend.</string>
     <string name="TestBackendOff">This account will connect to the production backend.</string>
-    <string name="OwlSetting">OwlGram Settings</string>
+    <string name="OwlSetting">Special Settings</string>
     <string name="Chat">Chats</string>
     <string name="OwlUpdates">Updates</string>
     <string name="Experimental">Experimental Settings</string>
@@ -293,4 +293,13 @@
     <string name="Patpat">Patpat</string>
     <string name="UnlockedHiddenFoxIcon">Oh… Congratulations! You unlocked the little shy fox icon!</string>
     <string name="UnlockedHiddenChupaIcon">You were chuped! Chupa\'s icon is now available in settings.</string>
+
+
+<!--    //plus-->
+    <string name="Features">Features</string>
+    <string name="GhostSetting">Ghost Setting</string>
+    <string name="ContactChanges">Contact Changes</string>
+    <string name="HiddenChat">Hidden Chat</string>
+
+
 </resources>
